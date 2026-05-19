@@ -87,7 +87,6 @@ def fetch_author(author_id: str, api_key: str) -> dict:
             citations = article.get("cited_by", {}).get("value") or 0
             year = str(article.get("year", ""))
             papers[pub_id] = {"title": title, "citations": citations, "year": year}
-            print(f"  {title[:65]}  ({citations})")
 
         if len(articles) < PAGE_SIZE:
             break
@@ -95,13 +94,50 @@ def fetch_author(author_id: str, api_key: str) -> dict:
         start += PAGE_SIZE
         time.sleep(0.5)
 
+    h = calc_hindex(papers)
+    i10 = calc_i10index(papers)
+    print_papers(papers, h, i10)
+
     return {
         "author_id": author_id,
         "name": name,
         "fetched_at": datetime.now().isoformat(timespec="seconds"),
         "total_citations": total_citations,
+        "h_index": h,
+        "i10_index": i10,
         "papers": papers,
     }
+
+
+def calc_hindex(papers: dict) -> int:
+    counts = sorted((p["citations"] for p in papers.values()), reverse=True)
+    h = 0
+    for i, c in enumerate(counts, 1):
+        if c >= i:
+            h = i
+        else:
+            break
+    return h
+
+
+def calc_i10index(papers: dict) -> int:
+    return sum(1 for p in papers.values() if p["citations"] >= 10)
+
+
+def separator(label: str) -> None:
+    print(f"  {'─' * 61}")
+    print(f"  {label:^61}")
+    print(f"  {'─' * 61}")
+
+
+def print_papers(papers: dict, h_index: int, i10_index: int) -> None:
+    sorted_papers = sorted(papers.values(), key=lambda p: p["citations"], reverse=True)
+    for i, info in enumerate(sorted_papers, 1):
+        if i == h_index + 1:
+            separator(f"h-index = {h_index}")
+        elif i == i10_index + 1:
+            separator(f"i10-index = {i10_index}")
+        print(f"  {info['title'][:65]}  ({info['citations']})")
 
 
 def snapshot_path(author_id: str) -> Path:

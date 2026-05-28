@@ -219,6 +219,7 @@ def compare(old_snap: dict, new_snap: dict, history: dict) -> None:
     new_papers = new_snap["papers"]
 
     gained = []
+    lost = []
     added = []
 
     for pub_id, new_info in new_papers.items():
@@ -228,22 +229,22 @@ def compare(old_snap: dict, new_snap: dict, history: dict) -> None:
                 vel = paper_velocity(history, pub_id)
                 gained.append((delta, pub_id, new_info["title"],
                                 old_papers[pub_id]["citations"], new_info["citations"], vel))
+            elif delta < 0:
+                lost.append((delta, new_info["title"],
+                             old_papers[pub_id]["citations"], new_info["citations"]))
         else:
             if new_info["citations"] > 0:
                 added.append(new_info)
 
-    old_total = old_snap.get("total_citations", 0)
-    new_total = new_snap.get("total_citations", 0)
-    total_delta = new_total - old_total
+    net = sum(d for d, *_ in gained) + sum(d for d, *_ in lost)
 
     print(f"\n{'='*62}")
     print(f"Comparison: {old_snap['fetched_at']}  →  {new_snap['fetched_at']}")
-    print(f"Overall citations: {old_total} → {new_total}  ({total_delta:+d})")
+    print(f"Overall citations: {old_snap.get('total_citations', 0)} → {new_snap.get('total_citations', 0)}  ({net:+d} net)")
     print(f"{'='*62}")
 
     if gained:
         gained.sort(reverse=True)
-        has_velocity = any(vel is not None for *_, vel in gained)
         print(f"\nPapers with new citations ({len(gained)}):\n")
         for delta, pub_id, title, before, after, vel in gained:
             vel_str = f"  ({vel:+.1f}/mo)" if vel is not None else ""
@@ -251,6 +252,13 @@ def compare(old_snap: dict, new_snap: dict, history: dict) -> None:
             print(f"         {before} → {after} citations")
     else:
         print("\nNo citation increases detected.")
+
+    if lost:
+        lost.sort()
+        print(f"\nPapers that lost citations ({len(lost)}):\n")
+        for delta, title, before, after in lost:
+            print(f"  {delta:>5}  {title[:55]}")
+            print(f"         {before} → {after} citations")
 
     if added:
         print(f"\nNew papers in profile ({len(added)}):")
@@ -317,27 +325,34 @@ def show_log(history: dict) -> None:
         new_papers = new["papers"]
 
         gained = []
+        lost = []
         for pub_id, new_info in new_papers.items():
             if pub_id in old_papers:
                 delta = new_info["citations"] - old_papers[pub_id]["citations"]
                 if delta > 0:
                     gained.append((delta, new_info["title"],
                                    old_papers[pub_id]["citations"], new_info["citations"]))
+                elif delta < 0:
+                    lost.append((delta, new_info["title"],
+                                 old_papers[pub_id]["citations"], new_info["citations"]))
 
-        old_total = old.get("total_citations", 0)
-        new_total = new.get("total_citations", 0)
-        total_delta = new_total - old_total
-
-        if not gained:
+        if not gained and not lost:
             continue
 
+        net = sum(d for d, *_ in gained) + sum(d for d, *_ in lost)
         print(f"\n{'='*62}")
-        print(f"Run #{i}  {old['fetched_at']}  →  {new['fetched_at']}  ({total_delta:+d} citations)")
+        print(f"Run #{i}  {old['fetched_at']}  →  {new['fetched_at']}  ({net:+d} net)")
         print(f"{'='*62}")
         gained.sort(reverse=True)
         for delta, title, before, after in gained:
             print(f"  +{delta:>4}  {title[:55]}")
             print(f"         {before} → {after} citations")
+        if lost:
+            lost.sort()
+            print(f"\n  Lost citations:")
+            for delta, title, before, after in lost:
+                print(f"  {delta:>5}  {title[:55]}")
+                print(f"         {before} → {after} citations")
 
 
 # ---------------------------------------------------------------------------

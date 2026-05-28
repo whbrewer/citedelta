@@ -38,6 +38,9 @@ Your Scholar author ID is the `user=` value in your Google Scholar profile URL:
 # Fetch latest citations and compare against last snapshot
 python3 citedelta.py
 
+# Show the full history of citation changes across all past runs
+python3 citedelta.py --log
+
 # Test the comparison output without hitting the network
 python3 citedelta.py --test
 

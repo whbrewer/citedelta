@@ -328,17 +328,16 @@ def show_log(history: dict) -> None:
         new_total = new.get("total_citations", 0)
         total_delta = new_total - old_total
 
+        if not gained:
+            continue
+
         print(f"\n{'='*62}")
         print(f"Run #{i}  {old['fetched_at']}  →  {new['fetched_at']}  ({total_delta:+d} citations)")
         print(f"{'='*62}")
-
-        if gained:
-            gained.sort(reverse=True)
-            for delta, title, before, after in gained:
-                print(f"  +{delta:>4}  {title[:55]}")
-                print(f"         {before} → {after} citations")
-        else:
-            print("  No citation changes.")
+        gained.sort(reverse=True)
+        for delta, title, before, after in gained:
+            print(f"  +{delta:>4}  {title[:55]}")
+            print(f"         {before} → {after} citations")
 
 
 # ---------------------------------------------------------------------------

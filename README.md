@@ -70,3 +70,11 @@ Papers with new citations (3):
 ```
 
 Snapshots are saved to `snapshots/<author_id>.json` and updated on each real run.
+
+## Citation Projections
+
+`projections.md` tracks milestone predictions for individual papers. To add a paper, just ask Claude:
+
+> "When will *[paper title]* reach [target] citations? It was published [date]."
+
+Claude will calculate the citation rate from the current count and publication date, project the ETA, and add a row to `projections.md` automatically.

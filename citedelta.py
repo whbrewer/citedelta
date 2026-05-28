@@ -301,6 +301,47 @@ def forecast_hindex(history: dict, latest: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Historical log
+# ---------------------------------------------------------------------------
+
+def show_log(history: dict) -> None:
+    """Print a chronological log of citation changes across all snapshot pairs."""
+    snaps = history["snapshots"]
+    if len(snaps) < 2:
+        print("Only one snapshot — run again later to build up history.")
+        return
+
+    for i in range(1, len(snaps)):
+        old, new = snaps[i - 1], snaps[i]
+        old_papers = old["papers"]
+        new_papers = new["papers"]
+
+        gained = []
+        for pub_id, new_info in new_papers.items():
+            if pub_id in old_papers:
+                delta = new_info["citations"] - old_papers[pub_id]["citations"]
+                if delta > 0:
+                    gained.append((delta, new_info["title"],
+                                   old_papers[pub_id]["citations"], new_info["citations"]))
+
+        old_total = old.get("total_citations", 0)
+        new_total = new.get("total_citations", 0)
+        total_delta = new_total - old_total
+
+        print(f"\n{'='*62}")
+        print(f"Run #{i}  {old['fetched_at']}  →  {new['fetched_at']}  ({total_delta:+d} citations)")
+        print(f"{'='*62}")
+
+        if gained:
+            gained.sort(reverse=True)
+            for delta, title, before, after in gained:
+                print(f"  +{delta:>4}  {title[:55]}")
+                print(f"         {before} → {after} citations")
+        else:
+            print("  No citation changes.")
+
+
+# ---------------------------------------------------------------------------
 # Test mode
 # ---------------------------------------------------------------------------
 
@@ -337,12 +378,23 @@ def main():
         action="store_true",
         help="Dry-run comparison using a tweaked copy of the latest snapshot (no network call).",
     )
+    parser.add_argument(
+        "--log",
+        action="store_true",
+        help="Show the full history of citation changes across all past runs.",
+    )
     args = parser.parse_args()
 
     if not args.author_id:
         sys.exit("No author ID provided. Pass one as an argument or set SCHOLAR_AUTHOR_ID in .env")
 
     history = load_history(args.author_id)
+
+    if args.log:
+        if not history:
+            sys.exit("No snapshot history found.")
+        show_log(history)
+        return
 
     if args.test:
         if not history:

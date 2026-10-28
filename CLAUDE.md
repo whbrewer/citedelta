@@ -7,8 +7,8 @@ citedelta tracks Google Scholar citation counts over time for a single author. O
 ## Author
 
 - **Name:** Wes Brewer
-- **Google Scholar ID:** `wJItLaAAAAAJ`
-- **Scholar profile:** https://scholar.google.com/citations?user=wJItLaAAAAAJ
+- **Google Scholar ID:** `JJXxbiYAAAAJ`
+- **Scholar profile:** https://scholar.google.com/citations?user=JJXxbiYAAAAJ
 
 ## Key files
 
@@ -16,7 +16,7 @@ citedelta tracks Google Scholar citation counts over time for a single author. O
 |------|---------|
 | `citedelta.py` | Main script |
 | `.env` | API credentials (gitignored) — `SERPAPI_KEY` and `SCHOLAR_AUTHOR_ID` |
-| `snapshots/wJItLaAAAAAJ.json` | Full snapshot history — array of snapshots, one per run |
+| `snapshots/JJXxbiYAAAAJ.json` | Full snapshot history — array of snapshots, one per run |
 | `projections.md` | Citation milestone projections (not committed unless asked) |
 | `requirements.txt` | Python dependencies (`requests`) |
 
@@ -32,11 +32,11 @@ The SerpAPI key must be set in `.env` or as `$SERPAPI_KEY`. The free tier allows
 
 ## Snapshot format
 
-`snapshots/wJItLaAAAAAJ.json` stores all snapshots in a single file:
+`snapshots/JJXxbiYAAAAJ.json` stores all snapshots in a single file:
 
 ```json
 {
-  "author_id": "wJItLaAAAAAJ",
+  "author_id": "JJXxbiYAAAAJ",
   "name": "Wes Brewer",
   "snapshots": [
     {
@@ -58,7 +58,7 @@ Each run appends a new entry. The compare always diffs the last two entries. Vel
 
 When the user asks when a paper will reach a target citation count:
 
-1. Look up the paper's current citation count from the latest snapshot in `snapshots/wJItLaAAAAAJ.json`
+1. Look up the paper's current citation count from the latest snapshot in `snapshots/JJXxbiYAAAAJ.json`
 2. Ask for (or use the provided) publication date
 3. Calculate: rate = current citations ÷ months since publication
 4. Calculate: ETA = today + (target − current) ÷ rate
